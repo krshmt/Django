@@ -23,14 +23,6 @@ def comparer(request,nb1,nb2):
     else:
         return HttpResponse(nb2 +" est plus grand que "+nb1)
 
-<<<<<<< HEAD:TP1/GestionProduit/LesProduits/views.py
-def ListProduct(request):
-    products = Product.objects.all()
-    rep = "<h1> Liste des produits </h1>"
-    for product in products:
-        rep += "<p>"+product.name +"</p>"
-    return HttpResponse(rep)
-=======
 def ListeProduits(request):
     produits = produits.objects.all()
     rep = '<h1> Liste des produits </h1>'
@@ -38,4 +30,4 @@ def ListeProduits(request):
         rep += '<li> '+p.nom+' </li>'
     rep += '</ul>'
     return HttpResponse(rep)
->>>>>>> aa98604 (pour kris):GestionProduit/LesProduits/views.py
+
