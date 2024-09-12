@@ -7,5 +7,6 @@ urlpatterns = [
     path("about", views.about, name='about'),
     path("hello/<name>", views.hello, name='hello'),
     path("comparer/<nb1>/<nb2>", views.comparer, name='comparer'),
+    path("ListProduct", views.ListProduct, name='ListProduct'),
 ]
 

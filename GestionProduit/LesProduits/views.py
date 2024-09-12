@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from .models import Product
 
 # Create your views here.
 
@@ -21,3 +22,10 @@ def comparer(request,nb1,nb2):
         return HttpResponse("<h1> "+nb1 +" est plus grand que "+nb2 +"</h1>")
     else:
         return HttpResponse(nb2 +" est plus grand que "+nb1)
+
+def ListProduct(request):
+    products = Product.objects.all()
+    rep = "<h1> Liste des produits </h1>"
+    for product in products:
+        rep += "<p>"+product.name +"</p>"
+    return HttpResponse(rep)
