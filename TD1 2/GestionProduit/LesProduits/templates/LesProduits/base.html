@@ -18,14 +18,14 @@
     </nav>
     {% endblock %}
     <main role="main" class="container top-pushed">
-        <div class="jumbotron">
+        <div class="mt-4 p-5 bg-primary text-white rounded">
             {% block contenu %}
             {% endblock %}
         </div>
     </main>
     <footer class="footer">
         <div class="container">
-            <p>&copy; Copyright {% now "Y" %} by Titof Production Copyrigh (c)</p>
+            <p>&copy; Copyright {% now "M Y" %} by Titof Production Copyrigh (c)</p>
         </div>
     </footer>
 </body>

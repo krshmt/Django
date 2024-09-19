@@ -16,7 +16,7 @@ def index(request):
 def about(request):
     return HttpResponse("<h1> Bonjour, voici ma vue about </h1>")
 
-def hello(request,name):
+def hello(name):
     return HttpResponse("<h1> Bonjour, " +name +" voici ma vue hello </h1>")
 
 
