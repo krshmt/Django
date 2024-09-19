@@ -8,5 +8,6 @@ urlpatterns = [
     path("hello/<name>", views.hello, name='hello'),
     path("comparer/<nb1>/<nb2>", views.comparer, name='comparer'),
     path("ListeProduits", views.ListeProduits, name='ListeProduits'),
+    path("productsview", views.lesProduits, name='productsview'),
 ]
 

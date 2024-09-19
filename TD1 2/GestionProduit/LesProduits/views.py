@@ -7,7 +7,10 @@ from LesProduits.models import Product
 from django.http import HttpResponse
 
 def index(request):
-    return HttpResponse("<h1> Bonjour, voici ma premiere vue </h1>")
+    name = request.GET.get("name")
+    if name is None:
+        name = "inconnu"
+    return HttpResponse("<h1> Bonjour " + name + " voici ma premiere vue </h1>")
 
 
 def about(request):
@@ -26,8 +29,16 @@ def comparer(request,nb1,nb2):
 
 def ListeProduits(request):
     products = Product.objects.all()
+    print(products)
     rep = "<h1> Liste des produits </h1><ul>"
     for product in products:
         rep += "<li>"+product.name+"</li>"
     rep += "</ul>"
     return HttpResponse(rep)
+
+
+def lesProduits(request):
+    products = Product.objects.all()
+    print(products)
+    return render(request, 'LesProduits/listProducts.html', {'products': products}) 
+    
