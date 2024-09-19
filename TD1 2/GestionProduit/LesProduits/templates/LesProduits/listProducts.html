@@ -1,29 +1,33 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <h1>List of Products</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>Product Name</th>
-                <th>Price</th>
-                <th>Quantity</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for product in products %}
-                <tr>
-                    <td>{{ product.name }}</td>
-                    <td>{{ product.price_ht }}</td>
-                    <td>{{ product.date_creation }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>   
-</body>
-</html>
+{% extends 'LesProduits/base.html' %}
+{% block title %}
+Mon application DJANGO
+{% endblock %}
+{% block menu %}
+<h1>Liste des produits</h1>
+{% endblock %}
+{% block contenu %}
+<table class="table">
+    <thead>
+        <th>Nom</th>
+        <th>Code</th>
+        <th>Prix HT</th>
+        <th>Prix TTC</th>
+        <th>Date Création</th>
+    </thead>
+    <tbody>
+        {% for prdct in products %}
+        <tr>
+            <td>{{ prdct.name }} </td>
+            <td>{{ prdct.code }} </td>
+            <td>{{ prdct.price_ht }} </td>
+            <td>{{ prdct.price_ttc }} </td>
+            <td>{{ prdct.date_creation }} </td>
+        </tr>-
+        {% endfor %}
+    </tbody>
+</table>
+<p>
+    J'ai
+    {% if prdcts|length < 5 %} peu de {% elif prdcts|length < 10 %} quelques {% else %} beaucoup de {% endif %} produits
+        préférés. </p>
+        {% endblock %}
