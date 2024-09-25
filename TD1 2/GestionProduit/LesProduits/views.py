@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from LesProduits.models import Product
+from django.views.generic import *
 
 # Create your views here.
 
@@ -40,5 +41,47 @@ def ListeProduits(request):
 def lesProduits(request):
     products = Product.objects.all()
     print(products)
-    return render(request, 'LesProduits/listProducts.html', {'products': products}) 
+    return render(request, 'listProducts.html', {'products': products}) 
+
+class HomeView(TemplateView):
+    template_name = "home.html"
+    def post(self, request, **kwargs):
+        return render(request, self.template_name)
+    def get_context_data(self, **kwargs):
+        context = super(HomeView, self).get_context_data(**kwargs)
+        context['titreh1'] = "Hello DJANGO"
+        return context
+
+
+class AboutView(TemplateView):
+    template_name = "home.html"
+    def get_context_data(self, **kwargs):
+        context = super(AboutView, self).get_context_data(**kwargs)
+        context['titreh1'] = "A propos de nous"
+        return context
+    def post(self, request, **kwargs):
+        return render(request, self.template_name)
+
+class ContactView(TemplateView):
+    template_name = "home.html"
+    def get_context_data(self, **kwargs):
+        context = super(ContactView, self).get_context_data(**kwargs)
+        context['titreh1'] = "Contactez-nous"
+        context['contact'] = self.kwargs.get('contact')
+        return context
+    def post(self, request, **kwargs):
+        return render(request, self.template_name)
     
+class ProductListView(ListView):
+    model = Product
+    template_name = "listProducts.html"
+    context_object_name = "products"
+
+class ProductDetailView(DetailView):
+    model = Product
+    template_name = "detail_product.html"
+    context_object_name = "product"
+    def get_context_data(self, **kwargs):
+        context = super(ProductDetailView, self).get_context_data(**kwargs)
+        context['titremenu'] = "Détail produit"
+        return context

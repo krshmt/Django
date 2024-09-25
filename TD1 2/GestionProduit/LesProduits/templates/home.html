@@ -1,11 +1,7 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home - GestionProduit</title>
-</head>
-<body>
-    <h1>Page home qui va etre une vue generique</h1>
-</body>
-</html>
+{% extends 'base.html' %}
+{% block contenu %}
+<h1> {{ titreh1 }} </h1>
+{% if contact %}
+    <p>Contact: {{ contact }}</p>
+{% endif %}
+{% endblock %}

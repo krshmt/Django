@@ -1,4 +1,4 @@
-{% extends 'LesProduits/base.html' %}
+{% extends 'base.html' %}
 {% block title %}
 Mon application DJANGO
 {% endblock %}
@@ -17,7 +17,7 @@ Mon application DJANGO
     <tbody>
         {% for prdct in products %}
         <tr>
-            <td>{{ prdct.name }} </td>
+            <td> <a href="{{prdct.id}}">{{ prdct.name }}</a> </td>
             <td>{{ prdct.code }} </td>
             <td>{{ prdct.price_ht }} </td>
             <td>{{ prdct.price_ttc }} </td>
