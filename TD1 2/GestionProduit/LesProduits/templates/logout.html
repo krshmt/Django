@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}
+Mon application DJANGO
+{% endblock %}
+{% block contenu %}
+<div class="align-center col-8 offset-2">
+    <p class="lead mb-3 ml-0">Se déconnecter</p>
+    <hr />
+    <form method="POST" action="{% url 'home' %}" autocomplete="off">
+        {% csrf_token %}
+        <div class="form-group mb-3">
+            <label>Vous avez été déconnecté.</label>
+        </div>
+    </form>
+</div>
+{% endblock %}

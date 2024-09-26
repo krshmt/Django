@@ -1,6 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from LesProduits.models import Product
+from LesProduits.form import ContactUsForm
 from django.views.generic import *
+from django.contrib.auth.views import LoginView
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login, logout
+from django.core.mail import send_mail
 
 # Create your views here.
 
@@ -13,6 +18,8 @@ def index(request):
         name = "inconnu"
     return HttpResponse("<h1> Bonjour " + name + " voici ma premiere vue </h1>")
 
+def home(request):
+    return HttpResponse("<h1> Bonjour, voici ma vue home </h1>")
 
 def about(request):
     return HttpResponse("<h1> Bonjour, voici ma vue about </h1>")
@@ -61,16 +68,6 @@ class AboutView(TemplateView):
         return context
     def post(self, request, **kwargs):
         return render(request, self.template_name)
-
-class ContactView(TemplateView):
-    template_name = "home.html"
-    def get_context_data(self, **kwargs):
-        context = super(ContactView, self).get_context_data(**kwargs)
-        context['titreh1'] = "Contactez-nous"
-        context['contact'] = self.kwargs.get('contact')
-        return context
-    def post(self, request, **kwargs):
-        return render(request, self.template_name)
     
 class ProductListView(ListView):
     model = Product
@@ -85,3 +82,51 @@ class ProductDetailView(DetailView):
         context = super(ProductDetailView, self).get_context_data(**kwargs)
         context['titremenu'] = "Détail produit"
         return context
+    
+
+class ConnectView(LoginView):
+    template_name = 'login.html'
+    def post(self, request, **kwargs):
+        username = request.POST.get('username', False)
+        password = request.POST.get('password', False)
+        user = authenticate(username=username, password=password)
+        if user is not None and user.is_active:
+            login(request, user)
+            return render(request, 'hello.html',{'titreh1':"hello "+username+", you're connected"})
+        else:
+            return render(request, 'register.html')
+    
+def ContactView(request):
+    titreh1 = "Contact us !"
+    if request.method=='POST':
+        form = ContactUsForm(request.POST)
+        if form.is_valid():
+            send_mail(
+            subject=f'Message from {form.cleaned_data["name"] or "anonyme"} via MonProjet contact Us form',
+            message=form.cleaned_data['message'],
+            from_email=form.cleaned_data['email'],
+            recipient_list=['admin@monprojet.com'],
+            )
+            return redirect('email-sent')
+    else:
+        form = ContactUsForm()
+        return render(request, "contact.html",{'titreh1':titreh1, 'form':form})
+            
+class RegisterView(TemplateView):
+    template_name = 'register.html'
+    def post(self, request, **kwargs):
+        username = request.POST.get('username', False)
+        mail = request.POST.get('mail', False)
+        password = request.POST.get('password', False)
+        user = User.objects.create_user(username, mail, password)
+        user.save()
+        if user is not None and user.is_active:
+            return render(request, 'login.html')
+        else:
+            return render(request, 'register.html')
+        
+class DisconnectView(TemplateView):
+    template_name = 'logout.html'
+    def get(self, request, **kwargs):
+        logout(request)
+        return render(request, self.template_name)
