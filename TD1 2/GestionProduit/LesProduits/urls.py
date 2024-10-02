@@ -17,5 +17,6 @@ urlpatterns = [
     path('register/', views.RegisterView.as_view(), name='register'),
     path('logout/', views.DisconnectView.as_view(), name='logout'),
     path('contact/', views.ContactView, name='contact'),
+    path("product/add/",views.ProductCreate, name="product-add"),
 ]
 

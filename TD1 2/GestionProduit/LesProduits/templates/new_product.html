@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block contenu %}
+<h1> Création d'un nouveau produit </h1>
+<form action="" method="post" novalidate>
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success mt-2">Créer</button>
+</form>
+{% endblock %}

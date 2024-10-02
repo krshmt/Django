@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from LesProduits.models import Product
-from LesProduits.form import ContactUsForm
+from LesProduits.form import ContactUsForm, ProductForm
 from django.views.generic import *
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.models import User
@@ -130,3 +130,9 @@ class DisconnectView(TemplateView):
     def get(self, request, **kwargs):
         logout(request)
         return render(request, self.template_name)
+    
+###################################################################################################################################################
+
+def ProductCreate(request):
+    form = ProductForm()
+    return render(request, "new_product.html", {'form': form})
