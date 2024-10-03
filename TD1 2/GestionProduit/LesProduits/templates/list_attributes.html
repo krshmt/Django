@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block contenu %}
+<table class="table">
+    <thead>
+        <th>Nom</th>
+        <th>Valeurs</th>
+        <th>Position</th>
+        <th>Actions</th>
+    </thead>
+    <tbody>
+        {% for attribute in productattributes %}
+        <tr>
+            <td>{{ attribute.name}}</td>
+            <td>
+                {% for value in attribute.productattributevalue_set.all %}
+                <p>{{ value.value }}</p>
+                {% empty %}
+                <p>Aucune valeur</p>
+                {% endfor %}
+            </td>
+            <td>
+                {% for value in attribute.productattributevalue_set.all %}
+                <p>{{ value.position }}</p>
+                {% empty %}
+                <p>Aucune valeur</p>
+                {% endfor %}
+            </td>
+            <td>
+                <a href="{% url 'attribute-detail' attribute.id %}" class="btn btn-primary mt-2">Détails</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

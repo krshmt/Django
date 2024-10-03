@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}
+Mon application DJANGO
+{% endblock %}
+{% block menu %}
+<h1>{{titremenu}}</h1>
+{% endblock %}
+{% block contenu %}
+<h2>{{ productitem.code }}</h2>
+<ul>
+<li>Produit : {{ productitem.product }}</li>
+{% for attribute in attributes %}
+<li>{{ attribute.product_attribute.name }} : {{ attribute.value }}</li>
+{% empty %}
+<li>Aucun attribut associé à cette déclinaison.</li>
+{% endfor %}
+</ul>
+<a href="{% url 'item-list' %}" class="btn btn-primary mt-2">Retour</a>
+<a href="{% url 'item-update' productitem.id %}" class="btn btn-warning mt-2">Modifier</a>
+<a href="{% url 'item-delete' productitem.id %}" class="btn btn-danger mt-2">Supprimer</a>
+{% endblock %}

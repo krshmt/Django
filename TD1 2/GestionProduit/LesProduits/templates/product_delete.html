@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block contenu %}
+<h1> Suppression d'un produit </h1>
+<form action="" method="post" >
+{% csrf_token %}
+<p>Etes-vous sûr de vouloir supprimer le produit : {{ object.name }} ?</p>
+<button type="submit" class="btn btn-success mt-2">Confirmer</button>
+</form>
+{% endblock %}

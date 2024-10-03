@@ -1,5 +1,7 @@
+from django.forms import BaseModelForm
 from django.shortcuts import render, redirect
-from LesProduits.models import Product
+from django.urls import reverse_lazy
+from LesProduits.models import Product, ProductAttribute, ProductAttributeValue, ProductItem
 from LesProduits.form import ContactUsForm, ProductForm
 from django.views.generic import *
 from django.contrib.auth.views import LoginView
@@ -133,6 +135,83 @@ class DisconnectView(TemplateView):
     
 ###################################################################################################################################################
 
-def ProductCreate(request):
-    form = ProductForm()
-    return render(request, "new_product.html", {'form': form})
+class ProductCreateView(CreateView):
+    model = Product
+    form_class=ProductForm
+    template_name = "new_product.html"
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
+        product = form.save()
+        return redirect('product-detail', product.id)
+    
+class ProductUpdateView(UpdateView):
+    model = Product
+    form_class=ProductForm
+    template_name = "update_product.html"
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
+        product = form.save()
+        return redirect('product-detail', product.id)
+    
+def ProductUpdate(request, id):
+    prdct = Product.objects.get(id=id)
+    if request.method == 'POST':
+        form = ProductForm(request.POST, instance=prdct)
+        if form.is_valid():
+            # mettre à jour le produit existant dans la base de données
+            form.save()
+            # rediriger vers la page détaillée du produit que nous venons de mettre à jour
+            return redirect('product-detail', prdct.id)
+    else:
+        form = ProductForm(instance=prdct)
+    return render(request,'product-update.html', {'form': form}) 
+
+class ProductDeleteView(DeleteView):
+    model = Product
+    template_name = "product_delete.html"
+    success_url = reverse_lazy('product-list')
+
+
+
+class ProductAttributeListView(ListView):
+    model = ProductAttribute
+    template_name = "list_attributes.html"
+    context_object_name = "productattributes"
+    def get_queryset(self ):
+        return ProductAttribute.objects.all()
+    
+    def get_context_data(self, **kwargs):
+        context = super(ProductAttributeListView, self).get_context_data(**kwargs)
+        context['titremenu'] = "Liste des attributs"
+        return context
+    
+class ProductAttributeDetailView(DetailView):
+    model = ProductAttribute
+    template_name = "detail_attribute.html"
+    context_object_name = "productattribute"
+
+    def get_context_data(self, **kwargs):
+        context = super(ProductAttributeDetailView, self).get_context_data(**kwargs)
+        context['titremenu'] = "Détail attribut"
+        context['values']=ProductAttributeValue.objects.filter(product_attribute=self.object).order_by('position')
+        return context
+    
+class ProductItemListView(ListView):
+    model = ProductItem
+    template_name = "list_items.html"
+    context_object_name = "productitems"
+    def get_queryset(self ):
+        return ProductItem.objects.all()
+    def get_context_data(self, **kwargs):
+        context = super(ProductItemListView, self).get_context_data(**kwargs)
+        context['titremenu'] = "Liste des déclinaisons"
+        return context
+    
+class ProductItemDetailView(DetailView):
+    model = ProductItem
+    template_name = "detail_item.html"
+    context_object_name = "productitem"
+    def get_context_data(self, **kwargs):
+        context = super(ProductItemDetailView, self).get_context_data(**kwargs)
+        context['titremenu'] = "Détail déclinaison"
+        # Récupérer les attributs associés à cette déclinaison
+        context['attributes'] = self.object.attributes.all()
+        return context

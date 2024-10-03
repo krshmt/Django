@@ -17,6 +17,13 @@ urlpatterns = [
     path('register/', views.RegisterView.as_view(), name='register'),
     path('logout/', views.DisconnectView.as_view(), name='logout'),
     path('contact/', views.ContactView, name='contact'),
-    path("product/add/",views.ProductCreate, name="product-add"),
+    #path("product/add/",views.ProductCreate, name="product-add"),
+    path("product/add/",views.ProductCreateView.as_view(), name="product-add"),
+    path("product/<pk>/update/",views.ProductUpdateView.as_view(), name="product-update"),
+    path("product/<pk>/delete/",views.ProductDeleteView.as_view(), name="product-delete"),
+    path('attributes/', views.ProductAttributeListView.as_view(), name='attribute-list'),
+    path('attribute/<int:pk>/', views.ProductAttributeDetailView.as_view(), name='attribute-detail'),
+    path('item/', views.ProductItemListView.as_view(), name='item-list'),
+    path('item/<int:pk>/', views.ProductItemDetailView.as_view(), name='detail_item'),
 ]
 
