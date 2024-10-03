@@ -176,8 +176,7 @@ class ProductAttributeListView(ListView):
     template_name = "list_attributes.html"
     context_object_name = "productattributes"
     def get_queryset(self ):
-        return ProductAttribute.objects.all()
-    
+        return ProductAttribute.objects.all().prefetch_related('productattributevalue_set')
     def get_context_data(self, **kwargs):
         context = super(ProductAttributeListView, self).get_context_data(**kwargs)
         context['titremenu'] = "Liste des attributs"
@@ -198,8 +197,8 @@ class ProductItemListView(ListView):
     model = ProductItem
     template_name = "list_items.html"
     context_object_name = "productitems"
-    def get_queryset(self ):
-        return ProductItem.objects.all()
+    def get_queryset(self):
+        return ProductItem.objects.select_related('product').prefetch_related('attributes')
     def get_context_data(self, **kwargs):
         context = super(ProductItemListView, self).get_context_data(**kwargs)
         context['titremenu'] = "Liste des déclinaisons"
