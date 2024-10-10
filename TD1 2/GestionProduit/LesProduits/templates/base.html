@@ -2,57 +2,63 @@
 {% load static %}
 
 <html lang="fr">
-    <head>
-        <meta charset="utf -8">
-        <title>{% block title %}{% endblock %}</title>
-        {% block styles %}
-            <link rel="stylesheet" href="{% static 'styles.css' %}" />
-            <link rel="stylesheet" href="{% static 'node_modules/bootstrap/dist/css/bootstrap.min.css' %}">
-        {% endblock %}
-    </head>
-    <body>
-        <nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ml-auto">
-                    {% if user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'product-list' %}">Produits</a>
-                        </li>
-                        <li class="nav-item"></li>
-                            <a class="nav-link" href="{% url 'product-add' %}">Ajout</a>
-                        </li>
-                        <li class="nav-item"></li>
-                            <a class="nav-link" href="{% url 'contact' %}">Contact</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'logout' %}">Déconnexion</a>
-                        </li>
-                    {%else%}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}">Connexion</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'register' %}">Inscription</a>
-                        </li>
-                    {%endif%}
-                </ul>
-            </div>
-        </nav>
-        {% block nav %}
-            <!-- <nav class="navbar navbar-expand-md navbar-dark bg-primary mb-4">
+
+<head>
+    <meta charset="utf -8">
+    <title>{% block title %}{% endblock %}</title>
+    {% block styles %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}" />
+    <link rel="stylesheet" href="{% static 'node_modules/bootstrap/dist/css/bootstrap.min.css' %}">
+    {% endblock %}
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                {% if user.is_authenticated %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'product-list' %}">Produits</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'item-list' %}">Liste des items</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'contact' %}">Contact</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'logout' %}">Déconnexion</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'product-add' %}">Ajout</a>
+                </li>
+                {%else%}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'login' %}">Connexion</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'register' %}">Inscription</a>
+                </li>
+                {%endif%}
+            </ul>
+        </div>
+    </nav>
+    {% block nav %}
+    <!-- <nav class="navbar navbar-expand-md navbar-dark bg-primary mb-4">
                 {% block menu %}{% endblock %}
             </nav > -->
-            {% endblock %}
-                <main role="main" class="container top-pushed">
-                <div class="jumbotron">
+    {% endblock %}
+    <main role="main" class="container top-pushed">
+        <div class="jumbotron">
             {% block contenu %}
-        {% endblock %}
+            {% endblock %}
         </div>
-        </main >
-        <footer class="footer">
-            <div class="container">
-                <p>&copy; Copyright {% now "Y" %} by Titof Production Copyrigh (c)</p>
-            </div>
-        </footer>
-        </body>
+    </main>
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; Copyright {% now "Y" %} by Titof Production Copyrigh (c)</p>
+        </div>
+    </footer>
+</body>
+
 </html>

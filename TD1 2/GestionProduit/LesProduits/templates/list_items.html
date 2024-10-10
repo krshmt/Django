@@ -1,5 +1,5 @@
-{% block contenu %}
-<table class="table">
+{% extends 'base.html' %}
+{% block contenu %} <table class="table">
     <thead>
         <th>Code</th>
         <th>Produit</th>
@@ -7,23 +7,18 @@
         <th>Actions</th>
     </thead>
     <tbody>
-        {% for item in productitems %}
-        <tr>
+        {% for item in productitems %} <tr>
             <td>{{ item.code }}</a></td>
             <td>{{ item.product.name }}</a></td>
             <td>{% for attribute in item.attributes.all %}
-                <p>{{ attribute.product_attribute.name }} : {{attribute.value }}</p>
-                {% empty %}
+                <p>{{ attribute.product_attribute.name }} : {{attribute.value }}</p> {% empty %}
                 <p>Aucune valeur</p>
                 {% endfor %}
             </td>
             <td>
-                <a href="{% url 'item-detail' item.id %}" class="btn btn-primary mt-2">Détails</a>
-                <a href="{% url 'item-update' item.id %}" class="btn btn-warning mt-2">Modifier</a>
-                <a href="{% url 'item-delete' item.id %}" class="btn btn-danger mt-2">Supprimer</a>
+                <a href="{% url 'detail-item' item.id %}" class="btn btn-primary mt-2">Détails</a>
             </td>
-        </tr>
-        {% endfor %}
+        </tr> {% endfor %}
     </tbody>
 </table>
 {% endblock %}

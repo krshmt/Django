@@ -8,58 +8,12 @@ from django.contrib.auth.views import LoginView
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.core.mail import send_mail
-
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 # Create your views here.
 
 
 from django.http import HttpResponse
-
-def index(request):
-    name = request.GET.get("name")
-    if name is None:
-        name = "inconnu"
-    return HttpResponse("<h1> Bonjour " + name + " voici ma premiere vue </h1>")
-
-def home(request):
-    return HttpResponse("<h1> Bonjour, voici ma vue home </h1>")
-
-def about(request):
-    return HttpResponse("<h1> Bonjour, voici ma vue about </h1>")
-
-def hello(name):
-    return HttpResponse("<h1> Bonjour, " +name +" voici ma vue hello </h1>")
-
-
-def comparer(request,nb1,nb2):
-    if nb1>nb2:
-        return HttpResponse("<h1> "+nb1 +" est plus grand que "+nb2 +"</h1>")
-    else:
-        return HttpResponse(nb2 +" est plus grand que "+nb1)
-
-
-def ListeProduits(request):
-    products = Product.objects.all()
-    print(products)
-    rep = "<h1> Liste des produits </h1><ul>"
-    for product in products:
-        rep += "<li>"+product.name+"</li>"
-    rep += "</ul>"
-    return HttpResponse(rep)
-
-
-def lesProduits(request):
-    products = Product.objects.all()
-    print(products)
-    return render(request, 'listProducts.html', {'products': products}) 
-
-class HomeView(TemplateView):
-    template_name = "home.html"
-    def post(self, request, **kwargs):
-        return render(request, self.template_name)
-    def get_context_data(self, **kwargs):
-        context = super(HomeView, self).get_context_data(**kwargs)
-        context['titreh1'] = "Hello DJANGO"
-        return context
 
 
 class AboutView(TemplateView):
@@ -70,25 +24,23 @@ class AboutView(TemplateView):
         return context
     def post(self, request, **kwargs):
         return render(request, self.template_name)
-    
+
+@method_decorator(login_required, name='dispatch')
 class ProductListView(ListView):
     model = Product
     template_name = "listProducts.html"
     context_object_name = "products"
     def get_queryset(self ):
-        # Surcouche pour filtrer les résultats en fonction de la recherche
-        # Récupérer le terme de recherche depuis la requête GET
         query = self.request.GET.get('search')
         if query:
-        # Filtre les produits par nom (insensible à la casse)
             return Product.objects.filter(name__icontains=query)
-        # Si aucun terme de recherche, retourner tous les produits
         return Product.objects.all()
     def get_context_data(self, **kwargs):
         context = super(ProductListView, self).get_context_data(**kwargs)
         context['titremenu'] = "Liste des produits"
         return context
 
+@method_decorator(login_required, name='dispatch')
 class ProductDetailView(DetailView):
     model = Product
     template_name = "detail_product.html"
@@ -98,18 +50,6 @@ class ProductDetailView(DetailView):
         context['titremenu'] = "Détail produit"
         return context
     
-
-class ConnectView(LoginView):
-    template_name = 'login.html'
-    def post(self, request, **kwargs):
-        username = request.POST.get('username', False)
-        password = request.POST.get('password', False)
-        user = authenticate(username=username, password=password)
-        if user is not None and user.is_active:
-            login(request, user)
-            return render(request, 'hello.html',{'titreh1':"hello "+username+", you're connected"})
-        else:
-            return render(request, 'register.html')
     
 def ContactView(request):
     titreh1 = "Contact us !"
@@ -129,6 +69,7 @@ def ContactView(request):
             
 class RegisterView(TemplateView):
     template_name = 'register.html'
+    
     def post(self, request, **kwargs):
         username = request.POST.get('username', False)
         mail = request.POST.get('mail', False)
@@ -136,7 +77,20 @@ class RegisterView(TemplateView):
         user = User.objects.create_user(username, mail, password)
         user.save()
         if user is not None and user.is_active:
-            return render(request, 'login.html')
+            return redirect('login')  # Redirige vers la page de connexion après inscription
+        else:
+            return render(request, 'register.html')
+
+class ConnectView(LoginView):
+    template_name = 'login.html'
+    
+    def post(self, request, **kwargs):
+        username = request.POST.get('username', False)
+        password = request.POST.get('password', False)
+        user = authenticate(username=username, password=password)
+        if user is not None and user.is_active:
+            login(request, user)
+            return redirect('/LesProduits/product/list')  # Redirige vers la liste des produits (Page par défaut qu'on a choisit)
         else:
             return render(request, 'register.html')
         
