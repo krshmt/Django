@@ -1,4 +1,3 @@
-
 from django.db import models
 from django.utils import timezone
 
@@ -8,7 +7,12 @@ PRODUCT_STATUS = (
     (2, 'Out of stock')              
 )
 
-# Create your models here.
+COMMANDE_STATUS = (
+    (0, 'En préparation'),
+    (1, 'Passée'),
+    (2, 'Reçue'),
+)
+
 """
     Status : numero, libelle
 """
@@ -32,7 +36,8 @@ class Product(models.Model):
     price_ht      = models.DecimalField(max_digits=8, decimal_places=2,  null=True, blank=True, verbose_name="Prix unitaire HT")
     price_ttc     = models.DecimalField(max_digits=8, decimal_places=2,  null=True, blank=True, verbose_name="Prix unitaire TTC")
     status        = models.SmallIntegerField(choices=PRODUCT_STATUS, default=0)
-    date_creation =  models.DateTimeField(blank=True, verbose_name="Date création") 
+    date_creation =  models.DateTimeField(blank=True, verbose_name="Date création")
+    stock         = models.PositiveIntegerField(default=0, verbose_name="Quantité en stock")
     
     def __str__(self):
         return "{0} {1}".format(self.name, self.code)
@@ -81,4 +86,48 @@ class ProductAttributeValue(models.Model):
      
     def __str__(self):
         return "{0} [{1}]".format(self.value, self.product_attribute)
-    
+
+
+"""
+    Fournisseur : nom, adresse, etc.
+"""
+class Fournisseur(models.Model):
+    nom = models.CharField(max_length=100)
+    adresse = models.CharField(max_length=255, null=True, blank=True)
+    email = models.EmailField(null=True, blank=True)
+    telephone = models.CharField(max_length=15, null=True, blank=True)
+
+    def __str__(self):
+        return self.nom
+
+
+"""
+    Commande : fournisseur, produits, état, date réception, etc.
+"""
+class Commande(models.Model):
+    fournisseur = models.ForeignKey(Fournisseur, on_delete=models.CASCADE, related_name="commandes")
+    date_commande = models.DateTimeField(default=timezone.now)
+    status = models.SmallIntegerField(choices=COMMANDE_STATUS, default=0)
+    date_reception = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Commande {self.id} - {self.fournisseur.nom}"
+
+    # Méthode pour mettre à jour le stock après réception de la commande
+    def reception_commande(self):
+        if self.status == 2:  # Si la commande est reçue
+            for item in self.produits_commande.all():
+                produit = item.produit
+                produit.stock += item.quantite
+                produit.save()
+
+"""
+    Lien entre Commande et Product (produits commandés)
+"""
+class CommandeProduit(models.Model):
+    commande = models.ForeignKey(Commande, on_delete=models.CASCADE, related_name="produits_commande")
+    produit = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantite = models.PositiveIntegerField()
+
+    def __str__(self):
+        return f"{self.produit.name} - Quantité : {self.quantite}"

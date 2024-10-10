@@ -1,13 +1,14 @@
 from django.forms import BaseModelForm
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
-from LesProduits.models import Product, ProductAttribute, ProductAttributeValue, ProductItem
-from LesProduits.form import ContactUsForm, ProductForm
+from LesProduits.models import Product, ProductAttribute, ProductAttributeValue, ProductItem, Fournisseur, Commande, CommandeProduit
+from LesProduits.form import ContactUsForm, ProductForm, FournisseurForm, CommandeForm, CommandeProduitForm
 from django.views.generic import *
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.core.mail import send_mail
+from django.http import HttpResponse
 
 # Create your views here.
 
@@ -227,3 +228,163 @@ class ProductItemDetailView(DetailView):
         # Récupérer les attributs associés à cette déclinaison
         context['attributes'] = self.object.attributes.all()
         return context
+    
+
+# ----------- Vues pour Fournisseur -----------
+
+class FournisseurListView(ListView):
+    model = Fournisseur
+    template_name = "list_fournisseurs.html"
+    context_object_name = "fournisseurs"
+
+    def get_queryset(self):
+        return Fournisseur.objects.all()
+
+    def get_context_data(self, **kwargs):
+        context = super(FournisseurListView, self).get_context_data(**kwargs)
+        context['titremenu'] = "Liste des fournisseurs"
+        return context
+
+
+class FournisseurDetailView(DetailView):
+    model = Fournisseur
+    template_name = "detail_fournisseur.html"
+    context_object_name = "fournisseur"
+
+    def get_context_data(self, **kwargs):
+        context = super(FournisseurDetailView, self).get_context_data(**kwargs)
+        context['titremenu'] = "Détail du fournisseur"
+        return context
+
+
+class FournisseurCreateView(CreateView):
+    model = Fournisseur
+    form_class = FournisseurForm
+    template_name = "new_fournisseur.html"
+
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
+        fournisseur = form.save()
+        return redirect('fournisseur-detail', fournisseur.id)
+
+
+class FournisseurUpdateView(UpdateView):
+    model = Fournisseur
+    form_class = FournisseurForm
+    template_name = "update_fournisseur.html"
+
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
+        fournisseur = form.save()
+        return redirect('fournisseur-detail', fournisseur.id)
+
+
+class FournisseurDeleteView(DeleteView):
+    model = Fournisseur
+    template_name = "fournisseur_delete.html"
+    success_url = reverse_lazy('fournisseur-list')
+
+
+# ----------- Vues pour Commande -----------
+
+class CommandeListView(ListView):
+    model = Commande
+    template_name = "list_commandes.html"
+    context_object_name = "commandes"
+
+    def get_queryset(self):
+        return Commande.objects.select_related('fournisseur')
+
+    def get_context_data(self, **kwargs):
+        context = super(CommandeListView, self).get_context_data(**kwargs)
+        context['titremenu'] = "Liste des commandes"
+        return context
+
+
+class CommandeDetailView(DetailView):
+    model = Commande
+    template_name = "detail_commande.html"
+    context_object_name = "commande"
+
+    def get_context_data(self, **kwargs):
+        context = super(CommandeDetailView, self).get_context_data(**kwargs)
+        context['titremenu'] = "Détail de la commande"
+        context['produits'] = CommandeProduit.objects.filter(commande=self.object)
+        return context
+
+
+class CommandeCreateView(CreateView):
+    model = Commande
+    form_class = CommandeForm
+    template_name = "new_commande.html"
+
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
+        commande = form.save()
+        return redirect('commande-detail', commande.id)
+
+
+class CommandeUpdateView(UpdateView):
+    model = Commande
+    form_class = CommandeForm
+    template_name = "update_commande.html"
+
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
+        commande = form.save()
+        return redirect('commande-detail', commande.id)
+
+
+class CommandeDeleteView(DeleteView):
+    model = Commande
+    template_name = "commande_delete.html"
+    success_url = reverse_lazy('commande-list')
+
+
+# ----------- Vues pour CommandeProduit -----------
+
+class CommandeProduitListView(ListView):
+    model = CommandeProduit
+    template_name = "list_commandeproduits.html"
+    context_object_name = "commandeproduits"
+
+    def get_queryset(self):
+        return CommandeProduit.objects.select_related('commande', 'produit')
+
+    def get_context_data(self, **kwargs):
+        context = super(CommandeProduitListView, self).get_context_data(**kwargs)
+        context['titremenu'] = "Liste des produits commandés"
+        return context
+
+
+class CommandeProduitDetailView(DetailView):
+    model = CommandeProduit
+    template_name = "detail_commandeproduit.html"
+    context_object_name = "commandeproduit"
+
+    def get_context_data(self, **kwargs):
+        context = super(CommandeProduitDetailView, self).get_context_data(**kwargs)
+        context['titremenu'] = "Détail du produit commandé"
+        return context
+
+
+class CommandeProduitCreateView(CreateView):
+    model = CommandeProduit
+    form_class = CommandeProduitForm
+    template_name = "new_commandeproduit.html"
+
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
+        commandeproduit = form.save()
+        return redirect('commandeproduit-detail', commandeproduit.id)
+
+
+class CommandeProduitUpdateView(UpdateView):
+    model = CommandeProduit
+    form_class = CommandeProduitForm
+    template_name = "update_commandeproduit.html"
+
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
+        commandeproduit = form.save()
+        return redirect('commandeproduit-detail', commandeproduit.id)
+
+
+class CommandeProduitDeleteView(DeleteView):
+    model = CommandeProduit
+    template_name = "commandeproduit_delete.html"
+    success_url = reverse_lazy('commandeproduit-list')
