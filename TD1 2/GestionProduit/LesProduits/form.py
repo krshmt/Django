@@ -29,3 +29,4 @@ class CommandeProduitForm(forms.ModelForm):
     class Meta:
         model = CommandeProduit
         fields = ['commande', 'produit', 'quantite']
+        search_fields = ["produit__name", "commande__fournisseur__nom"]

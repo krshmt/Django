@@ -2,9 +2,9 @@ from django.db import models
 from django.utils import timezone
 
 PRODUCT_STATUS = (
-    (0, 'Offline'),
-    (1, 'Online'),
-    (2, 'Out of stock')              
+    (0, 'Hors ligne'),
+    (1, 'En ligne'),
+    (2, 'Rupture de stock'),              
 )
 
 COMMANDE_STATUS = (
@@ -39,6 +39,18 @@ class Product(models.Model):
     date_creation =  models.DateTimeField(blank=True, verbose_name="Date création")
     stock         = models.PositiveIntegerField(default=0, verbose_name="Quantité en stock")
     
+    def save(self, *args, **kwargs):
+        # Empêcher les stocks négatifs
+        if self.stock < 0:
+            self.stock = 0
+        # Mise à jour du statut
+        if self.stock == 0:
+            self.status = 2  # 'Out of stock'
+        else:
+            if self.status == 2:
+                self.status = 1  # 'Online'
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return "{0} {1}".format(self.name, self.code)
 
@@ -105,13 +117,22 @@ class Fournisseur(models.Model):
     Commande : fournisseur, produits, état, date réception, etc.
 """
 class Commande(models.Model):
-    fournisseur = models.ForeignKey(Fournisseur, on_delete=models.CASCADE, related_name="commandes")
+    fournisseur = models.ForeignKey(Fournisseur, on_delete=models.CASCADE)
     date_commande = models.DateTimeField(default=timezone.now)
     status = models.SmallIntegerField(choices=COMMANDE_STATUS, default=0)
     date_reception = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"Commande {self.id} - {self.fournisseur.nom}"
+    
+
+    def commander(self, fournisseur, quantite):
+        """Créer une commande pour ce produit, peu importe le stock"""
+        commande = Commande.objects.create(fournisseur=fournisseur, status=0)
+        CommandeProduit.objects.create(commande=commande, produit=self, quantite=quantite)
+        return f"Produit {self.name} commandé ({quantite} unités) auprès de {fournisseur.nom}"
+
+
 
     # Méthode pour mettre à jour le stock après réception de la commande
     def reception_commande(self):
@@ -120,6 +141,7 @@ class Commande(models.Model):
                 produit = item.produit
                 produit.stock += item.quantite
                 produit.save()
+                
 
 """
     Lien entre Commande et Product (produits commandés)

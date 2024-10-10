@@ -1,0 +1,20 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+  <h1>Recommander des produits</h1>
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="button">Commander</button>
+  </form>
+
+  <ul>
+    <h2>Produits sélectionnés</h2>
+    {% for product in products %}
+      <li>{{ product.name }} ({{ product.code }})</li>
+    {% endfor %}
+  </ul>
+
+  <a href="{% url 'admin:LesProduits_product_changelist' %}">Annuler</a>
+{% endblock %}
