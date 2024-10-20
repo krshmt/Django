@@ -23,6 +23,7 @@ Mon application DJANGO
             <td>{{ prdct.price_ht }} </td>
             <td>{{ prdct.price_ttc }} </td>
             <td>{{ prdct.date_creation }} </td>
+            <td>{{ product.stock }}</td>
             <td><a href="{% url 'product-update' prdct.id %}">modifier</a><a href="{% url 'product-delete' prdct.id %}">Supprimer</a></td>
         </tr>-
         {% endfor %}

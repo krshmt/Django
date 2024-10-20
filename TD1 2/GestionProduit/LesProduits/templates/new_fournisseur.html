@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Nouveau Fournisseur{% endblock %}
+
+{% block contenu %}
+<div class="container">
+    <h1>Créer un nouveau Fournisseur</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-success">Enregistrer</button>
+        <a href="{% url 'fournisseur-list' %}" class="btn btn-primary">Annuler</a>
+    </form>
+</div>
+{% endblock %}
