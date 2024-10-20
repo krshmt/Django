@@ -36,6 +36,7 @@ Aucune manipulation est nécessaire pour avoir la base de données, elle est dé
 ## Les tests
 
 A cause de problèmes techniques concernant Kris, les tests ne sont pas réalisés à 100%.
+il a eut 13 tests de réaliser et qui passe.
 (Les détails des problèmes sont que Kris n'a plus de compte GitHub fonctionnel. Sur 2 comptes, un n'est plus accessible à cause de l'A2F et l'autre n'a pas la possibilité de faire des manipulations comme sur le dépôt distant)
 
 ## MCD
