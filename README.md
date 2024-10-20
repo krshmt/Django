@@ -1,4 +1,4 @@
-# Django
+# Django Rémi Boulay et Kris Toure
 
 ## Lien de la vidéo de la présentation de l'application
 https://youtu.be/wzGLFflaKtk
