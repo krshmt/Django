@@ -1,22 +1,21 @@
 {% extends 'base.html' %}
-{% block title %}
-Mon application DJANGO
-{% endblock %}
-{% block menu %}
-<h1>{{titremenu}}</h1>
-{% endblock %}
+
+{% block title %}Détail du Produit{% endblock %}
+
 {% block contenu %}
-<h2>{{ product.name }}</h2>
-<a href="{% url 'product-list' %}">Retour à la liste des produits</a>
-<style>
-    a {
-        color: black;
-    }
-</style>
-<ul>
-    <li>Code : {{ product.code }}</li>
-    <li>Prix HT : {{ product.price_ht }}</li>
-    <li>Prix TTC: {{ product.price_ttc }}</li>
-    <li>Date de création : {{ product.date_creation }}</li>
-</ul>
+<div class="container">
+    <h1>Détail du Produit</h1>
+    <ul class="list-group">
+        <li class="list-group-item"><strong>Nom :</strong> {{ product.name }}</li>
+        <li class="list-group-item"><strong>Code :</strong> {{ product.code }}</li>
+        <li class="list-group-item"><strong>Prix HT :</strong> {{ product.price_ht }} €</li>
+        <li class="list-group-item"><strong>Prix TTC :</strong> {{ product.price_ttc }} €</li>
+        <li class="list-group-item"><strong>Quantité en stock :</strong> {{ product.stock }}</li>
+        <li class="list-group-item"><strong>Date de création :</strong> {{ product.date_creation|date:"d/m/Y H:i" }}</li>
+    </ul>
+    <div class="mt-3">
+        <a href="{% url 'product-update' product.id %}" class="btn btn-warning">Modifier</a>
+        <a href="{% url 'product-list' %}" class="btn btn-primary">Retour à la liste</a>
+    </div>
+</div>
 {% endblock %}

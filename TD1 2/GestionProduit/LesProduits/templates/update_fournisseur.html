@@ -1,15 +1,15 @@
 {% extends 'base.html' %}
 
-{% block title %}Modifier le Produit{% endblock %}
+{% block title %}Modifier Fournisseur{% endblock %}
 
 {% block contenu %}
 <div class="container">
-    <h1>Modifier le Produit</h1>
+    <h1>Modifier le Fournisseur</h1>
     <form action="" method="post">
         {% csrf_token %}
         {{ form.as_p }}
         <button type="submit" class="btn btn-success mt-2">Modifier</button>
-        <a href="{% url 'product-list' %}" class="btn btn-primary">Annuler</a>
+        <a href="{% url 'fournisseur-list' %}" class="btn btn-primary">Annuler</a>
     </form>
 </div>
 {% endblock %}

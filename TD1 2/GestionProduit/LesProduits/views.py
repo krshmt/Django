@@ -1,14 +1,23 @@
+from datetime import timezone
+from django.contrib import messages
 from django.forms import BaseModelForm
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse_lazy
-from LesProduits.models import Product, ProductAttribute, ProductAttributeValue, ProductItem
-from LesProduits.form import ContactUsForm, ProductForm
+from LesProduits.models import Product, ProductAttribute, ProductAttributeValue, ProductItem, Fournisseur, Commande, CommandeProduit
+from LesProduits.forms import ContactUsForm, ProductForm, FournisseurForm, CommandeForm, CommandeProduitForm
 from django.views.generic import *
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.core.mail import send_mail
-
+from django.http import HttpResponse
+from django.db import transaction
+from .forms import CommandeForm, CommandeProduitFormSet
+from django.utils import timezone
+from .models import Fournisseur
+from .forms import FournisseurForm
+from django.urls import reverse_lazy
+from django.views.generic import *
 # Create your views here.
 
 
@@ -227,3 +236,266 @@ class ProductItemDetailView(DetailView):
         # Récupérer les attributs associés à cette déclinaison
         context['attributes'] = self.object.attributes.all()
         return context
+    
+
+# ----------- Vues pour Fournisseur -----------
+
+class FournisseurListView(ListView):
+    model = Fournisseur
+    template_name = "list_fournisseurs.html"
+    context_object_name = "fournisseurs"
+
+    def get_queryset(self):
+        return Fournisseur.objects.all()
+
+    def get_context_data(self, **kwargs):
+        context = super(FournisseurListView, self).get_context_data(**kwargs)
+        context['titremenu'] = "Liste des fournisseurs"
+        return context
+
+
+class FournisseurDetailView(DetailView):
+    model = Fournisseur
+    template_name = "detail_fournisseur.html"
+    context_object_name = "fournisseur"
+
+    def get_context_data(self, **kwargs):
+        context = super(FournisseurDetailView, self).get_context_data(**kwargs)
+        context['titremenu'] = "Détail du fournisseur"
+        return context
+
+
+class FournisseurCreateView(CreateView):
+    model = Fournisseur
+    form_class = FournisseurForm
+    template_name = "new_fournisseur.html"
+
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
+        fournisseur = form.save()
+        return redirect('fournisseur-detail', fournisseur.id)
+
+
+class FournisseurUpdateView(UpdateView):
+    model = Fournisseur
+    form_class = FournisseurForm
+    template_name = "update_fournisseur.html"
+
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
+        fournisseur = form.save()
+        return redirect('fournisseur-detail', fournisseur.id)
+
+
+class FournisseurDeleteView(DeleteView):
+    model = Fournisseur
+    template_name = "fournisseur_delete.html"
+    success_url = reverse_lazy('fournisseur-list')
+
+
+# ----------- Vues pour Commande -----------
+
+class CommandeListView(ListView):
+    model = Commande
+    template_name = "list_commandes.html"
+    context_object_name = "commandes"
+
+    def get_queryset(self):
+        return Commande.objects.select_related('fournisseur')
+
+    def get_context_data(self, **kwargs):
+        context = super(CommandeListView, self).get_context_data(**kwargs)
+        context['titremenu'] = "Liste des commandes"
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        if 'mark_received' in request.POST:
+            commande_id = request.POST.get('commande_id')
+            commande = get_object_or_404(Commande, pk=commande_id)
+            # Vérifier si la commande n'est pas déjà reçue (status == 2)
+            if commande.status != 2:  # Utiliser l'entier correspondant au statut "Reçue"
+                commande.date_reception = timezone.now()
+                commande.status = 2  # Mettre à jour le statut à "Reçue"
+                commande.save()
+                
+                # Appel de la méthode pour mettre à jour le stock
+                commande.reception_commande()
+                
+                messages.success(request, 'La commande a été marquée comme reçue, et le stock a été mis à jour.')
+            else:
+                messages.error(request, 'Cette commande est déjà marquée comme reçue.')
+        return redirect('commande-list')
+
+class CommandeDetailView(DetailView):
+    model = Commande
+    template_name = "detail_commande.html"
+    context_object_name = "commande"
+
+    def get_context_data(self, **kwargs):
+        context = super(CommandeDetailView, self).get_context_data(**kwargs)
+        context['titremenu'] = "Détail de la commande"
+        context['produits'] = CommandeProduit.objects.filter(commande=self.object)
+        return context
+
+
+class CommandeCreateView(CreateView):
+    model = Commande
+    form_class = CommandeForm
+    template_name = "new_commande.html"
+
+    def get_context_data(self, **kwargs):
+        data = super().get_context_data(**kwargs)
+        if self.request.POST:
+            data['commandeproduit_formset'] = CommandeProduitFormSet(self.request.POST)
+        else:
+            data['commandeproduit_formset'] = CommandeProduitFormSet()
+        return data
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        commandeproduit_formset = context['commandeproduit_formset']
+        with transaction.atomic():
+            self.object = form.save()
+            if commandeproduit_formset.is_valid():
+                commandeproduit_formset.instance = self.object
+                commandeproduit_formset.save()
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy('commande-detail', kwargs={'pk': self.object.pk})
+
+
+class CommandeUpdateView(UpdateView):
+    model = Commande
+    form_class = CommandeForm
+    template_name = "update_commande.html"
+
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
+        commande = form.save()
+        return redirect('commande-detail', commande.id)
+
+
+class CommandeDeleteView(DeleteView):
+    model = Commande
+    template_name = "commande_delete.html"
+    success_url = reverse_lazy('commande-list')
+
+
+# ----------- Vues pour CommandeProduit -----------
+
+class CommandeProduitListView(ListView):
+    model = CommandeProduit
+    template_name = "list_commandeproduits.html"
+    context_object_name = "commandeproduits"
+
+    def get_queryset(self):
+        return CommandeProduit.objects.select_related('commande', 'produit')
+
+    def get_context_data(self, **kwargs):
+        context = super(CommandeProduitListView, self).get_context_data(**kwargs)
+        context['titremenu'] = "Liste des produits commandés"
+        return context
+
+
+class CommandeProduitDetailView(DetailView):
+    model = CommandeProduit
+    template_name = "detail_commandeproduit.html"
+    context_object_name = "commandeproduit"
+
+    def get_context_data(self, **kwargs):
+        context = super(CommandeProduitDetailView, self).get_context_data(**kwargs)
+        context['titremenu'] = "Détail du produit commandé"
+        return context
+
+
+class CommandeProduitCreateView(CreateView):
+    model = CommandeProduit
+    form_class = CommandeProduitForm
+    template_name = "new_commandeproduit.html"
+
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
+        commandeproduit = form.save()
+        return redirect('commandeproduit-detail', commandeproduit.id)
+
+
+class CommandeProduitUpdateView(UpdateView):
+    model = CommandeProduit
+    form_class = CommandeProduitForm
+    template_name = "update_commandeproduit.html"
+
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
+        commandeproduit = form.save()
+        return redirect('commandeproduit-detail', commandeproduit.id)
+
+
+class CommandeProduitDeleteView(DeleteView):
+    model = CommandeProduit
+    template_name = "commandeproduit_delete.html"
+    success_url = reverse_lazy('commandeproduit-list')
+    
+    
+    
+from django.shortcuts import get_object_or_404, redirect, render
+from .models import Product, Fournisseur, Commande, CommandeProduit
+from .forms import CommandeForm, CommandeProduitFormSet
+from django.db import transaction
+
+def commander_produit(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    fournisseur = get_object_or_404(Fournisseur, id=1)  # Sélectionner un fournisseur par défaut
+    
+    if request.method == 'POST':
+        commande_form = CommandeForm(request.POST)
+        commandeproduit_formset = CommandeProduitFormSet(request.POST)
+        
+        if commande_form.is_valid() and commandeproduit_formset.is_valid():
+            with transaction.atomic():
+                # Créer une nouvelle commande
+                commande = commande_form.save(commit=False)
+                commande.fournisseur = fournisseur
+                commande.save()
+                
+                # Enregistrer les produits commandés
+                commandeproduit_formset.instance = commande
+                commandeproduit_formset.save()
+
+            return redirect('commande-detail', commande.id)
+    else:
+        commande_form = CommandeForm()
+        commandeproduit_formset = CommandeProduitFormSet()
+
+    return render(request, 'commande_produit.html', {
+        'commande_form': commande_form,
+        'commandeproduit_formset': commandeproduit_formset,
+        'product': product
+    })
+
+
+class FournisseurListView(ListView):
+    model = Fournisseur
+    template_name = 'list_fournisseurs.html'
+    context_object_name = 'fournisseurs'
+
+class FournisseurDetailView(DetailView):
+    model = Fournisseur
+    template_name = 'detail_fournisseur.html'
+    context_object_name = 'fournisseur'
+
+class FournisseurCreateView(CreateView):
+    model = Fournisseur
+    form_class = FournisseurForm
+    template_name = 'new_fournisseur.html'
+
+    def get_success_url(self):
+        return reverse_lazy('fournisseur-list')
+
+class FournisseurUpdateView(UpdateView):
+    model = Fournisseur
+    form_class = FournisseurForm
+    template_name = 'update_fournisseur.html'
+
+    def get_success_url(self):
+        return reverse_lazy('fournisseur-list')
+
+class FournisseurDeleteView(DeleteView):
+    model = Fournisseur
+    template_name = 'fournisseur_delete.html'
+    success_url = reverse_lazy('fournisseur-list')

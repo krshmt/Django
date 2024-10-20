@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Détail du Fournisseur{% endblock %}
+
+{% block contenu %}
+<div class="container">
+    <h1>Détail du Fournisseur</h1>
+    <p><strong>Nom :</strong> {{ fournisseur.nom }}</p>
+    <p><strong>Adresse :</strong> {{ fournisseur.adresse }}</p>
+    <p><strong>Email :</strong> {{ fournisseur.email }}</p>
+    <p><strong>Téléphone :</strong> {{ fournisseur.telephone }}</p>
+    <a href="{% url 'fournisseur-update' fournisseur.id %}" class="btn btn-warning">Modifier</a>
+    <a href="{% url 'fournisseur-list' %}" class="btn btn-primary">Retour à la liste</a>
+</div>
+{% endblock %}

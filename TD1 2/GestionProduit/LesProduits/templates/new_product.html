@@ -1,9 +1,15 @@
 {% extends 'base.html' %}
+
+{% block title %}Créer un Produit{% endblock %}
+
 {% block contenu %}
-<h1> Création d'un nouveau produit </h1>
-<form action="" method="post" novalidate>
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-success mt-2">Créer</button>
-</form>
+<div class="container">
+    <h1>Création d'un nouveau Produit</h1>
+    <form action="" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-success mt-2">Créer</button>
+        <a href="{% url 'product-list' %}" class="btn btn-primary">Annuler</a>
+    </form>
+</div>
 {% endblock %}

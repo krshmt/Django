@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Créer une Commande{% endblock %}
+
+{% block contenu %}
+<div class="container">
+    <h1>Créer une Commande</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        
+        <!-- Afficher le formset pour les produits -->
+        {{ commandeproduit_formset.management_form }}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Produit</th>
+                    <th>Quantité</th>
+                    <th>Supprimer</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for form in commandeproduit_formset.forms %}
+                <tr>
+                    <td>{{ form.produit }}</td>
+                    <td>{{ form.quantite }}</td>
+                    <td>
+                        {% if form.instance.pk %}
+                            {{ form.DELETE }}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+    </form>
+</div>
+{% endblock %}

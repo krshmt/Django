@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from django.views.generic import *
+from .views import *
 
 urlpatterns = [
     path('', views.index, name='index'),
@@ -25,5 +26,16 @@ urlpatterns = [
     path('attribute/<int:pk>/', views.ProductAttributeDetailView.as_view(), name='attribute-detail'),
     path('item/', views.ProductItemListView.as_view(), name='item-list'),
     path('item/<int:pk>/', views.ProductItemDetailView.as_view(), name='detail_item'),
+    path('product/<int:product_id>/commander/', views.commander_produit, name='commande-produit'),
+    path('commandes/', views.CommandeListView.as_view(), name='commande-list'),
+    path('commandes/<int:pk>/', views.CommandeDetailView.as_view(), name='commande-detail'),
+    path('commandes/ajouter/', views.CommandeCreateView.as_view(), name='commande-create'),
+    path('commandes/<int:pk>/modifier/', views.CommandeUpdateView.as_view(), name='commande-update'),
+    path('commandes/<int:pk>/supprimer/', views.CommandeDeleteView.as_view(), name='commande-delete'),
+    path('fournisseurs/', FournisseurListView.as_view(), name='fournisseur-list'),
+    path('fournisseur/<int:pk>/', FournisseurDetailView.as_view(), name='fournisseur-detail'),
+    path('fournisseur/new/', FournisseurCreateView.as_view(), name='fournisseur-create'),
+    path('fournisseur/<int:pk>/edit/', FournisseurUpdateView.as_view(), name='fournisseur-update'),
+    path('fournisseur/<int:pk>/delete/', FournisseurDeleteView.as_view(), name='fournisseur-delete'),
 ]
 
