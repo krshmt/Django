@@ -315,7 +315,11 @@ class CommandeListView(ListView):
                 commande.date_reception = timezone.now()
                 commande.status = 2  # Mettre à jour le statut à "Reçue"
                 commande.save()
-                messages.success(request, 'La commande a été marquée comme reçue.')
+                
+                # Appel de la méthode pour mettre à jour le stock
+                commande.reception_commande()
+                
+                messages.success(request, 'La commande a été marquée comme reçue, et le stock a été mis à jour.')
             else:
                 messages.error(request, 'Cette commande est déjà marquée comme reçue.')
         return redirect('commande-list')

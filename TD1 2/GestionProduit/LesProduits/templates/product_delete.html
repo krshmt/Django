@@ -1,9 +1,15 @@
 {% extends 'base.html' %}
+
+{% block title %}Supprimer le Produit{% endblock %}
+
 {% block contenu %}
-<h1> Suppression d'un produit </h1>
-<form action="" method="post" >
-{% csrf_token %}
-<p>Etes-vous sûr de vouloir supprimer le produit : {{ object.name }} ?</p>
-<button type="submit" class="btn btn-success mt-2">Confirmer</button>
-</form>
+<div class="container">
+    <h1>Suppression du Produit</h1>
+    <form action="" method="post">
+        {% csrf_token %}
+        <p>Êtes-vous sûr de vouloir supprimer le produit : <strong>{{ object.name }}</strong> ?</p>
+        <button type="submit" class="btn btn-danger">Confirmer</button>
+        <a href="{% url 'product-list' %}" class="btn btn-primary">Annuler</a>
+    </form>
+</div>
 {% endblock %}
