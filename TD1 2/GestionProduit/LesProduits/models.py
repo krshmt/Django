@@ -40,15 +40,13 @@ class Product(models.Model):
     stock         = models.PositiveIntegerField(default=0, verbose_name="Quantité en stock")
     
     def save(self, *args, **kwargs):
-        # Empêcher les stocks négatifs
         if self.stock < 0:
             self.stock = 0
-        # Mise à jour du statut
         if self.stock == 0:
-            self.status = 2  # 'Out of stock'
+            self.status = 2
         else:
             if self.status == 2:
-                self.status = 1  # 'Online'
+                self.status = 1
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -65,7 +63,7 @@ class ProductItem(models.Model):
     color   = models.CharField(max_length=100)
     code    = models.CharField(max_length=10, null=True, blank=True, unique=True)
     product = models.ForeignKey('Product', on_delete=models.CASCADE)
-    attributes  = models.ManyToManyField("ProductAttributeValue", related_name="product_item", null=True, blank=True)
+    attributes  = models.ManyToManyField("ProductAttributeValue", related_name="product_item", blank=True)
        
     def __str__(self):
         return "{0} {1}".format(self.color, self.code)
@@ -133,10 +131,8 @@ class Commande(models.Model):
         return f"Produit {self.name} commandé ({quantite} unités) auprès de {fournisseur.nom}"
 
 
-
-    # Méthode pour mettre à jour le stock après réception de la commande
     def reception_commande(self):
-        if self.status == 2:  # Si la commande est reçue
+        if self.status == 2:
             for item in self.produits_commande.all():
                 produit = item.produit
                 produit.stock += item.quantite

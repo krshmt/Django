@@ -40,7 +40,15 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'LesProduits',
     'debug_toolbar',
+    'django_extensions',
 ]
+
+GRAPH_MODELS = {
+  'all_applications': True,
+  'output': 'mcd.png',
+  'group_models': True,
+  'fontname': 'Arial',
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

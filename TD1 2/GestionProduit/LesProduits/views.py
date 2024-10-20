@@ -18,6 +18,8 @@ from .models import Fournisseur
 from .forms import FournisseurForm
 from django.urls import reverse_lazy
 from django.views.generic import *
+from django.contrib.auth.mixins import LoginRequiredMixin
+
 # Create your views here.
 
 
@@ -63,6 +65,7 @@ def lesProduits(request):
 
 class HomeView(TemplateView):
     template_name = "home.html"
+    
     def post(self, request, **kwargs):
         return render(request, self.template_name)
     def get_context_data(self, **kwargs):
@@ -73,6 +76,7 @@ class HomeView(TemplateView):
 
 class AboutView(TemplateView):
     template_name = "home.html"
+    
     def get_context_data(self, **kwargs):
         context = super(AboutView, self).get_context_data(**kwargs)
         context['titreh1'] = "A propos de nous"
@@ -80,28 +84,29 @@ class AboutView(TemplateView):
     def post(self, request, **kwargs):
         return render(request, self.template_name)
     
-class ProductListView(ListView):
+class ProductListView(LoginRequiredMixin, ListView):
     model = Product
     template_name = "listProducts.html"
     context_object_name = "products"
+    login_url = '/login/'
+    
     def get_queryset(self ):
-        # Surcouche pour filtrer les résultats en fonction de la recherche
-        # Récupérer le terme de recherche depuis la requête GET
+
         query = self.request.GET.get('search')
         if query:
-        # Filtre les produits par nom (insensible à la casse)
             return Product.objects.filter(name__icontains=query)
-        # Si aucun terme de recherche, retourner tous les produits
         return Product.objects.all()
     def get_context_data(self, **kwargs):
         context = super(ProductListView, self).get_context_data(**kwargs)
         context['titremenu'] = "Liste des produits"
         return context
 
-class ProductDetailView(DetailView):
+class ProductDetailView(LoginRequiredMixin, DetailView):
     model = Product
     template_name = "detail_product.html"
     context_object_name = "product"
+    login_url = '/login/'
+    
     def get_context_data(self, **kwargs):
         context = super(ProductDetailView, self).get_context_data(**kwargs)
         context['titremenu'] = "Détail produit"
@@ -110,13 +115,18 @@ class ProductDetailView(DetailView):
 
 class ConnectView(LoginView):
     template_name = 'login.html'
+    redirect_authenticated_user = True
+
+    def get_success_url(self):
+        return reverse_lazy('product-list')
+
     def post(self, request, **kwargs):
         username = request.POST.get('username', False)
         password = request.POST.get('password', False)
         user = authenticate(username=username, password=password)
         if user is not None and user.is_active:
             login(request, user)
-            return render(request, 'hello.html',{'titreh1':"hello "+username+", you're connected"})
+            return redirect(self.get_success_url())
         else:
             return render(request, 'register.html')
     
@@ -136,8 +146,10 @@ def ContactView(request):
         form = ContactUsForm()
         return render(request, "contact.html",{'titreh1':titreh1, 'form':form})
             
-class RegisterView(TemplateView):
+class RegisterView(LoginRequiredMixin, TemplateView):
     template_name = 'register.html'
+    login_url = '/login/'
+    
     def post(self, request, **kwargs):
         username = request.POST.get('username', False)
         mail = request.POST.get('mail', False)
@@ -149,54 +161,60 @@ class RegisterView(TemplateView):
         else:
             return render(request, 'register.html')
         
-class DisconnectView(TemplateView):
+class DisconnectView(LoginRequiredMixin, TemplateView):
     template_name = 'logout.html'
+    login_url = '/login/'
+    
     def get(self, request, **kwargs):
         logout(request)
         return render(request, self.template_name)
     
 ###################################################################################################################################################
 
-class ProductCreateView(CreateView):
+class ProductCreateView(LoginRequiredMixin, CreateView):
     model = Product
     form_class=ProductForm
     template_name = "new_product.html"
+    login_url = '/login/'
+    
     def form_valid(self, form: BaseModelForm) -> HttpResponse:
         product = form.save()
         return redirect('product-detail', product.id)
     
-class ProductUpdateView(UpdateView):
+class ProductUpdateView(LoginRequiredMixin, UpdateView):
     model = Product
     form_class=ProductForm
     template_name = "update_product.html"
+    login_url = '/login/'
+    
     def form_valid(self, form: BaseModelForm) -> HttpResponse:
         product = form.save()
         return redirect('product-detail', product.id)
     
-def ProductUpdate(request, id):
-    prdct = Product.objects.get(id=id)
-    if request.method == 'POST':
-        form = ProductForm(request.POST, instance=prdct)
-        if form.is_valid():
-            # mettre à jour le produit existant dans la base de données
-            form.save()
-            # rediriger vers la page détaillée du produit que nous venons de mettre à jour
-            return redirect('product-detail', prdct.id)
-    else:
-        form = ProductForm(instance=prdct)
-    return render(request,'product-update.html', {'form': form}) 
+    def ProductUpdate(request, id):
+        prdct = Product.objects.get(id=id)
+        if request.method == 'POST':
+            form = ProductForm(request.POST, instance=prdct)
+            if form.is_valid():
+                form.save()
+                return redirect('product-detail', prdct.id)
+        else:
+            form = ProductForm(instance=prdct)
+        return render(request,'product-update.html', {'form': form}) 
 
-class ProductDeleteView(DeleteView):
+class ProductDeleteView(LoginRequiredMixin, DeleteView):
     model = Product
     template_name = "product_delete.html"
     success_url = reverse_lazy('product-list')
+    login_url = '/login/'
 
 
-
-class ProductAttributeListView(ListView):
+class ProductAttributeListView(LoginRequiredMixin, ListView):
     model = ProductAttribute
     template_name = "list_attributes.html"
     context_object_name = "productattributes"
+    login_url = '/login/'
+    
     def get_queryset(self ):
         return ProductAttribute.objects.all().prefetch_related('productattributevalue_set')
     def get_context_data(self, **kwargs):
@@ -204,10 +222,11 @@ class ProductAttributeListView(ListView):
         context['titremenu'] = "Liste des attributs"
         return context
     
-class ProductAttributeDetailView(DetailView):
+class ProductAttributeDetailView(LoginRequiredMixin, DetailView):
     model = ProductAttribute
     template_name = "detail_attribute.html"
     context_object_name = "productattribute"
+    login_url = '/login/'
 
     def get_context_data(self, **kwargs):
         context = super(ProductAttributeDetailView, self).get_context_data(**kwargs)
@@ -215,10 +234,12 @@ class ProductAttributeDetailView(DetailView):
         context['values']=ProductAttributeValue.objects.filter(product_attribute=self.object).order_by('position')
         return context
     
-class ProductItemListView(ListView):
+class ProductItemListView(LoginRequiredMixin, ListView):
     model = ProductItem
     template_name = "list_items.html"
     context_object_name = "productitems"
+    login_url = '/login/'
+    
     def get_queryset(self):
         return ProductItem.objects.select_related('product').prefetch_related('attributes')
     def get_context_data(self, **kwargs):
@@ -226,24 +247,26 @@ class ProductItemListView(ListView):
         context['titremenu'] = "Liste des déclinaisons"
         return context
     
-class ProductItemDetailView(DetailView):
+class ProductItemDetailView(LoginRequiredMixin, DetailView):
     model = ProductItem
     template_name = "detail_item.html"
     context_object_name = "productitem"
+    login_url = '/login/'
+    
     def get_context_data(self, **kwargs):
         context = super(ProductItemDetailView, self).get_context_data(**kwargs)
         context['titremenu'] = "Détail déclinaison"
-        # Récupérer les attributs associés à cette déclinaison
         context['attributes'] = self.object.attributes.all()
         return context
     
 
 # ----------- Vues pour Fournisseur -----------
 
-class FournisseurListView(ListView):
+class FournisseurListView(LoginRequiredMixin, ListView):
     model = Fournisseur
     template_name = "list_fournisseurs.html"
     context_object_name = "fournisseurs"
+    login_url = '/login/'
 
     def get_queryset(self):
         return Fournisseur.objects.all()
@@ -254,10 +277,11 @@ class FournisseurListView(ListView):
         return context
 
 
-class FournisseurDetailView(DetailView):
+class FournisseurDetailView(LoginRequiredMixin, DetailView):
     model = Fournisseur
     template_name = "detail_fournisseur.html"
     context_object_name = "fournisseur"
+    login_url = '/login/'
 
     def get_context_data(self, **kwargs):
         context = super(FournisseurDetailView, self).get_context_data(**kwargs)
@@ -265,39 +289,43 @@ class FournisseurDetailView(DetailView):
         return context
 
 
-class FournisseurCreateView(CreateView):
+class FournisseurCreateView(LoginRequiredMixin, CreateView):
     model = Fournisseur
     form_class = FournisseurForm
     template_name = "new_fournisseur.html"
+    login_url = '/login/'
 
     def form_valid(self, form: BaseModelForm) -> HttpResponse:
         fournisseur = form.save()
         return redirect('fournisseur-detail', fournisseur.id)
 
 
-class FournisseurUpdateView(UpdateView):
+class FournisseurUpdateView(LoginRequiredMixin, UpdateView):
     model = Fournisseur
     form_class = FournisseurForm
     template_name = "update_fournisseur.html"
+    login_url = '/login/'
 
     def form_valid(self, form: BaseModelForm) -> HttpResponse:
         fournisseur = form.save()
         return redirect('fournisseur-detail', fournisseur.id)
 
 
-class FournisseurDeleteView(DeleteView):
+class FournisseurDeleteView(LoginRequiredMixin, DeleteView):
     model = Fournisseur
     template_name = "fournisseur_delete.html"
     success_url = reverse_lazy('fournisseur-list')
+    login_url = '/login/'
 
 
 # ----------- Vues pour Commande -----------
 
-class CommandeListView(ListView):
+class CommandeListView(LoginRequiredMixin, ListView):
     model = Commande
     template_name = "list_commandes.html"
     context_object_name = "commandes"
-
+    login_url = '/login/'
+    
     def get_queryset(self):
         return Commande.objects.select_related('fournisseur')
 
@@ -310,13 +338,11 @@ class CommandeListView(ListView):
         if 'mark_received' in request.POST:
             commande_id = request.POST.get('commande_id')
             commande = get_object_or_404(Commande, pk=commande_id)
-            # Vérifier si la commande n'est pas déjà reçue (status == 2)
-            if commande.status != 2:  # Utiliser l'entier correspondant au statut "Reçue"
+            if commande.status != 2:
                 commande.date_reception = timezone.now()
-                commande.status = 2  # Mettre à jour le statut à "Reçue"
+                commande.status = 2
                 commande.save()
                 
-                # Appel de la méthode pour mettre à jour le stock
                 commande.reception_commande()
                 
                 messages.success(request, 'La commande a été marquée comme reçue, et le stock a été mis à jour.')
@@ -324,10 +350,11 @@ class CommandeListView(ListView):
                 messages.error(request, 'Cette commande est déjà marquée comme reçue.')
         return redirect('commande-list')
 
-class CommandeDetailView(DetailView):
+class CommandeDetailView(LoginRequiredMixin, DetailView):
     model = Commande
     template_name = "detail_commande.html"
     context_object_name = "commande"
+    login_url = '/login/'
 
     def get_context_data(self, **kwargs):
         context = super(CommandeDetailView, self).get_context_data(**kwargs)
@@ -336,10 +363,11 @@ class CommandeDetailView(DetailView):
         return context
 
 
-class CommandeCreateView(CreateView):
+class CommandeCreateView(LoginRequiredMixin, CreateView):
     model = Commande
     form_class = CommandeForm
     template_name = "new_commande.html"
+    login_url = '/login/'
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
@@ -363,28 +391,31 @@ class CommandeCreateView(CreateView):
         return reverse_lazy('commande-detail', kwargs={'pk': self.object.pk})
 
 
-class CommandeUpdateView(UpdateView):
+class CommandeUpdateView(LoginRequiredMixin, UpdateView):
     model = Commande
     form_class = CommandeForm
     template_name = "update_commande.html"
+    login_url = '/login/'
 
     def form_valid(self, form: BaseModelForm) -> HttpResponse:
         commande = form.save()
         return redirect('commande-detail', commande.id)
 
 
-class CommandeDeleteView(DeleteView):
+class CommandeDeleteView(LoginRequiredMixin, DeleteView):
     model = Commande
     template_name = "commande_delete.html"
     success_url = reverse_lazy('commande-list')
+    login_url = '/login/'
 
 
 # ----------- Vues pour CommandeProduit -----------
 
-class CommandeProduitListView(ListView):
+class CommandeProduitListView(LoginRequiredMixin, ListView):
     model = CommandeProduit
     template_name = "list_commandeproduits.html"
     context_object_name = "commandeproduits"
+    login_url = '/login/'
 
     def get_queryset(self):
         return CommandeProduit.objects.select_related('commande', 'produit')
@@ -395,10 +426,11 @@ class CommandeProduitListView(ListView):
         return context
 
 
-class CommandeProduitDetailView(DetailView):
+class CommandeProduitDetailView(LoginRequiredMixin, DetailView):
     model = CommandeProduit
     template_name = "detail_commandeproduit.html"
     context_object_name = "commandeproduit"
+    login_url = '/login/'
 
     def get_context_data(self, **kwargs):
         context = super(CommandeProduitDetailView, self).get_context_data(**kwargs)
@@ -406,30 +438,33 @@ class CommandeProduitDetailView(DetailView):
         return context
 
 
-class CommandeProduitCreateView(CreateView):
+class CommandeProduitCreateView(LoginRequiredMixin, CreateView):
     model = CommandeProduit
     form_class = CommandeProduitForm
     template_name = "new_commandeproduit.html"
+    login_url = '/login/'
 
     def form_valid(self, form: BaseModelForm) -> HttpResponse:
         commandeproduit = form.save()
         return redirect('commandeproduit-detail', commandeproduit.id)
 
 
-class CommandeProduitUpdateView(UpdateView):
+class CommandeProduitUpdateView(LoginRequiredMixin, UpdateView):
     model = CommandeProduit
     form_class = CommandeProduitForm
     template_name = "update_commandeproduit.html"
+    login_url = '/login/'
 
     def form_valid(self, form: BaseModelForm) -> HttpResponse:
         commandeproduit = form.save()
         return redirect('commandeproduit-detail', commandeproduit.id)
 
 
-class CommandeProduitDeleteView(DeleteView):
+class CommandeProduitDeleteView(LoginRequiredMixin, DeleteView):
     model = CommandeProduit
     template_name = "commandeproduit_delete.html"
     success_url = reverse_lazy('commandeproduit-list')
+    login_url = '/login/'
     
     
     
@@ -440,7 +475,7 @@ from django.db import transaction
 
 def commander_produit(request, product_id):
     product = get_object_or_404(Product, id=product_id)
-    fournisseur = get_object_or_404(Fournisseur, id=1)  # Sélectionner un fournisseur par défaut
+    fournisseur = get_object_or_404(Fournisseur, id=1)
     
     if request.method == 'POST':
         commande_form = CommandeForm(request.POST)
@@ -448,12 +483,10 @@ def commander_produit(request, product_id):
         
         if commande_form.is_valid() and commandeproduit_formset.is_valid():
             with transaction.atomic():
-                # Créer une nouvelle commande
                 commande = commande_form.save(commit=False)
                 commande.fournisseur = fournisseur
                 commande.save()
-                
-                # Enregistrer les produits commandés
+
                 commandeproduit_formset.instance = commande
                 commandeproduit_formset.save()
 
@@ -469,33 +502,38 @@ def commander_produit(request, product_id):
     })
 
 
-class FournisseurListView(ListView):
+class FournisseurListView(LoginRequiredMixin, ListView):
     model = Fournisseur
     template_name = 'list_fournisseurs.html'
     context_object_name = 'fournisseurs'
+    login_url = '/login/'
 
-class FournisseurDetailView(DetailView):
+class FournisseurDetailView(LoginRequiredMixin, DetailView):
     model = Fournisseur
     template_name = 'detail_fournisseur.html'
     context_object_name = 'fournisseur'
+    login_url = '/login/'
 
-class FournisseurCreateView(CreateView):
+class FournisseurCreateView(LoginRequiredMixin, CreateView):
     model = Fournisseur
     form_class = FournisseurForm
     template_name = 'new_fournisseur.html'
+    login_url = '/login/'
 
     def get_success_url(self):
         return reverse_lazy('fournisseur-list')
 
-class FournisseurUpdateView(UpdateView):
+class FournisseurUpdateView(LoginRequiredMixin, UpdateView):
     model = Fournisseur
     form_class = FournisseurForm
     template_name = 'update_fournisseur.html'
+    login_url = '/login/'
 
     def get_success_url(self):
         return reverse_lazy('fournisseur-list')
 
-class FournisseurDeleteView(DeleteView):
+class FournisseurDeleteView(LoginRequiredMixin, DeleteView):
     model = Fournisseur
     template_name = 'fournisseur_delete.html'
     success_url = reverse_lazy('fournisseur-list')
+    login_url = '/login/'

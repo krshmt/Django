@@ -2,9 +2,11 @@ from django.urls import path
 from . import views
 from django.views.generic import *
 from .views import *
+from django.urls import path
+from django.shortcuts import redirect
 
 urlpatterns = [
-    path('', views.index, name='index'),
+    path('', lambda request: redirect('login'), name='home'),
     path('home/', views.home, name='home'),
     path("hello/<name>", views.hello, name='hello'),
     path("comparer/<nb1>/<nb2>", views.comparer, name='comparer'),

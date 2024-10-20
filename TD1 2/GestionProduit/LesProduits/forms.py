@@ -48,7 +48,7 @@ CommandeProduitFormSet = inlineformset_factory(
     Commande, 
     CommandeProduit, 
     form=CommandeProduitForm, 
-    extra=1,  # Nombre de formulaires supplémentaires par défaut
+    extra=1,
     can_delete=True
 )
 
