@@ -49,7 +49,7 @@ CommandeProduitFormSet = inlineformset_factory(
     CommandeProduit, 
     form=CommandeProduitForm, 
     extra=1,  # Nombre de formulaires supplémentaires par défaut
-    can_delete=True  # Permet de supprimer des produits d'une commande
+    can_delete=True
 )
 
 class FournisseurForm(forms.ModelForm):
